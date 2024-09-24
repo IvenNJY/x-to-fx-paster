@@ -1,48 +1,71 @@
+from tkinter import *
+
+import tkinter as tk
 import pyperclip
-import winreg
 import os
 
-# fuction to allow for enable on startup #
+# main #
 
-# Get the path of the current script
-script_path = os.path.realpath(__file__)
-
-# Add the script to the run key in the registry
-key = winreg.HKEY_CURRENT_USER
-key_value = "Software\\Microsoft\\Windows\\CurrentVersion\\Run"
-
-# Open the key to edit
-open = winreg.OpenKey(key, key_value, 0, winreg.KEY_ALL_ACCESS)
-
-# Set value
-winreg.SetValueEx(open, "any_name", 0, winreg.REG_SZ, script_path)
-
-# Close the key
-winreg.CloseKey(open)
-
-
-# Main #
-
-# check link whether it is 
-
+# Replace x.com with fxtwitter.com (twitter)
 def replace_twitter_link(text):
+    if "x.com" in text:
+      return text.replace("x.com", "fxtwitter.com")
+    else:
+      return text
 
-  if "x.com" in text:
+# Check clipboard
 
-    new_text = text.replace("/x.com", "/fxtwitter.com")
-    return new_text
+def monitor_clipboard():
+    clipboarded_content = pyperclip.paste()
 
-  else:
-      
-    return text
+    # Only modify if the toggle is turned on
 
-# Replace if the link is correct
+    if turnOn:
+        modified_content = replace_twitter_link(clipboarded_content)
 
-while True:
+        if modified_content != clipboarded_content:
+            pyperclip.copy(modified_content)
+    root.after(500, monitor_clipboard)
 
-  clipboarded_content = pyperclip.paste()
-  modified_content = replace_twitter_link(clipboarded_content)
-  
-  if modified_content != clipboarded_content:
-    pyperclip.copy(modified_content)
-    
+# GUI #
+
+root = tk.Tk()
+root.title("Fx Twitter Paster")
+root.geometry("500x300")
+
+global turnOn
+turnOn = False
+
+# Create label
+my_label = Label(root, text="Paster Disabled", fg="Gray", font=("Helvetica", 32))
+my_label.pack(pady=20)
+
+# Define images with path
+path = os.getcwd()
+
+on_image = PhotoImage(file=os.path.join(path + "/images/on.png"))
+off_image = PhotoImage(file=os.path.join(path + "/images/off.png"))
+
+## Switch ## 
+
+def switch():
+    global turnOn
+    # Toggle the boolean state
+    if turnOn:
+        on_button.config(image=off_image)
+        my_label.config(text="Paster Disabled", fg="Gray")
+        turnOn = False
+    else:
+        on_button.config(image=on_image)
+        my_label.config(text="Paster Enabled", fg="Black")
+        turnOn = True
+
+# Button 
+on_button = Button(root, image=off_image, bd=0, command=switch)
+on_button.pack(pady=50)
+
+# Start clipboard monitoring in the Tkinter event loop
+monitor_clipboard()
+
+# Start the Tkinter main loop
+root.mainloop()
